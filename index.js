@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import MTProto from '@mtproto/core'
 import authorize from './auth.js'
+import generateGreetings from './greetingsText.js'
 
 global.api = new MTProto({
   api_id: Number(process.env.APP_ID),
@@ -25,7 +26,7 @@ global.api.updates.on('updateShortMessage', async updateInfo => {
   unansweredDialogs.forEach(async dialog => {
     const user = latestDialogs.users.find(({ id }) => id === dialog.peer.user_id)
     const firstMessage = await isFirstMessage(user, dialog.top_message)
-    if(firstMessage) greet(user)
+    if(firstMessage) greet(user, dialog.top_message)
   })
 })
 
@@ -42,6 +43,19 @@ async function isFirstMessage(user, messageID) {
   return history.count === 1
 }
 
-function greet(user) {
+function greet(user, replyToID) {
   console.log(`Приветствую ${user.first_name}`)
+  const { greetingsText, textEntities } = generateGreetings(user)
+  global.api.call('messages.sendMessage', {
+    peer: {
+      _: 'inputPeerUser',
+      user_id: user.id,
+      access_hash: user.access_hash,
+      no_webpage: true
+    },
+    reply_to_msg_id: replyToID,
+    message: greetingsText,
+    entities: textEntities,
+    random_id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+  }).catch(console.error)
 }

@@ -21,8 +21,13 @@
     "@babel/eslint-parser": "^7.16.5",
     "@babel/plugin-syntax-top-level-await": "^7.14.5",
     "@mtproto/core": "^6.1.0",
+    "dedent": "^0.7.0",
     "dotenv": "^10.0.0",
-    "readline-sync": "^1.4.10"
+    "luxon": "^2.2.0",
+    "nanoid": "^3.1.30",
+    "node-html-parser": "^5.1.0",
+    "readline-sync": "^1.4.10",
+    "string-strip-html": "^9.1.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0"
