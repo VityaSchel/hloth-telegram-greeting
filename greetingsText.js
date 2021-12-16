@@ -3,6 +3,14 @@ import { stripHtml } from 'string-strip-html'
 import dedent from 'dedent'
 import { DateTime } from 'luxon'
 
+const entitiesMapping = {
+  'b': 'messageEntityBold',
+  'i': 'messageEntityItalic',
+  's': 'messageEntityStrike',
+  'a': 'messageEntityTextUrl',
+  'u': 'messageEntityUnderline'
+}
+
 export default user => {
   function convertHTMLToEntities(element) {
     let entities = []
@@ -14,13 +22,7 @@ export default user => {
         }
 
         entities.push({
-          _: {
-            'b': 'messageEntityBold',
-            'i': 'messageEntityItalic',
-            's': 'messageEntityStrike',
-            'a': 'messageEntityTextUrl',
-            'u': 'messageEntityUnderline'
-          }[child.rawTagName],
+          _: entitiesMapping[child.rawTagName],
           offset: child.range[0] - difference(child.range[0]),
           length: child.innerText.length,
           ...(child.rawTagName === 'a' && { url: child.getAttribute('href') })
@@ -31,13 +33,15 @@ export default user => {
     return entities
   }
   function time() {
-    const time = DateTime.now().setZone('Europe/Moscow').toSeconds() - DateTime.now().setZone('Europe/Moscow').startOf('day').toSeconds()
+    const date = DateTime.now().setZone('Europe/Moscow')
+    const time = date.toSeconds() - date.startOf('day').toSeconds()
     if(time < 60*60*5) return 0
     else if(time < 60*60*12) return 1
     else if(time < 60*60*19) return 2
     else return 3
   }
 
+  /* eslint-disable no-irregular-whitespace */
   const greetings = parse(dedent`
     <b>${['Здравствуйте', 'Доброе утро', 'Добрый день', 'Добрый вечер'][time()]}, ${user.first_name}!</b>
 
@@ -67,7 +71,7 @@ export default user => {
     Российского банка, возможен перевод по СБП или по договору, статуса самозанятого и ИП нет.
 
     Кстати, исходный код этого авто‑ответчика ⁠⁠<a href='https://github.com/VityaSchel/hloth-telegram-greeting'>выложен⁠⁠</a> \
-    на моем GitHub. Если Вы еще не заглянули туда, почему бы Вам не ознакомиться с ним и другими моими проектами? 😉
+    на моем GitHub. Если Вы еще не заглянули туда, почему бы Вам не ознакомиться с ним и другими моими проектами? 😉
   `)
 
   return {

@@ -1,4 +1,5 @@
 import readlineSync from 'readline-sync'
+import { getUser, sendCode, signIn, getPassword, checkPassword } from './utils.js'
 
 export default async function authorize() {
   let user
@@ -22,14 +23,11 @@ export default async function authorize() {
     } catch (error) {
       switch (error.error_message) {
         case 'SESSION_PASSWORD_NEEDED':
-          while(true) {
-            try {
-              await twoFA()
-            } catch(e) {
-              if(e.error_message === 'PASSWORD_HASH_INVALID') throw 'Неправильный пароль 2FA'
-              else throw error
-            }
-            break
+          try {
+            await twoFA()
+          } catch(e) {
+            if(e.error_message === 'PASSWORD_HASH_INVALID') throw 'Неправильный пароль 2FA в .env файле'
+            else throw error
           }
           return await getUser()
 
@@ -58,59 +56,4 @@ async function twoFA() {
   })
 
   await checkPassword({ srp_id, A, M1 })
-}
-
-export async function getUser() {
-  try {
-    const user = await global.api.call('users.getFullUser', {
-      id: {
-        _: 'inputUserSelf',
-      },
-    })
-
-    return user
-  } catch (error) {
-    return null
-  }
-}
-
-export function sendCode(phone) {
-  return global.api.call('auth.sendCode', {
-    phone_number: phone,
-    settings: {
-      _: 'codeSettings',
-    },
-  })
-}
-
-export function signIn({ code, phone, phone_code_hash }) {
-  return global.api.call('auth.signIn', {
-    phone_code: code,
-    phone_number: phone,
-    phone_code_hash: phone_code_hash,
-  })
-}
-
-export function signUp({ phone, phone_code_hash }) {
-  return global.api.call('auth.signUp', {
-    phone_number: phone,
-    phone_code_hash: phone_code_hash,
-    first_name: 'MTProto',
-    last_name: 'Core',
-  })
-}
-
-export function getPassword() {
-  return global.api.call('account.getPassword')
-}
-
-export function checkPassword({ srp_id, A, M1 }) {
-  return global.api.call('auth.checkPassword', {
-    password: {
-      _: 'inputCheckPasswordSRP',
-      srp_id,
-      A,
-      M1,
-    },
-  })
 }

@@ -2,21 +2,21 @@ import 'dotenv/config'
 import MTProto from '@mtproto/core'
 import authorize from './auth.js'
 import generateGreetings from './greetingsText.js'
+import { isFirstMessage } from './utils.js'
 
 global.api = new MTProto({
   api_id: Number(process.env.APP_ID),
   api_hash: process.env.APP_HASH,
 
-  storageOptions: {
-    path: './tempdata.json'
-  }
+  storageOptions: { path: './tempdata.json' }
 })
 
 const user = await authorize()
 console.log(`Пользователь ${user.user.first_name} авторизирован, бот начинает работу`)
 
-global.api.updates.on('updateShortMessage', async updateInfo => {
-  if(updateInfo.out === true) return
+global.api.updates.on('updateShortMessage', async updateInfo => updateInfo.out === false && checkLatestDialogs())
+
+async function checkLatestDialogs() {
   const latestDialogs = await global.api.call('messages.getDialogs', {
     exclude_pinned: true,
     limit: 5,
@@ -28,23 +28,11 @@ global.api.updates.on('updateShortMessage', async updateInfo => {
     const firstMessage = await isFirstMessage(user, dialog.top_message)
     if(firstMessage) greet(user, dialog.top_message)
   })
-})
-
-async function isFirstMessage(user, messageID) {
-  const history = await global.api.call('messages.getHistory', {
-    peer: {
-      _: 'inputPeerUser',
-      user_id: user.id,
-      access_hash: user.access_hash
-    },
-    limit: 1,
-    max_id: messageID
-  })
-  return history.count === 1
 }
 
 function greet(user, replyToID) {
   console.log(`Приветствую ${user.first_name}`)
+
   const { greetingsText, textEntities } = generateGreetings(user)
   global.api.call('messages.sendMessage', {
     peer: {
