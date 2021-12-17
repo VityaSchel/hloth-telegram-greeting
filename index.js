@@ -15,6 +15,12 @@ const user = await authorize()
 console.log(`Пользователь ${user.user.first_name} авторизирован, бот начинает работу`)
 
 global.api.updates.on('updateShortMessage', async updateInfo => updateInfo.out === false && checkLatestDialogs())
+global.api.updates.on('updates', ({ updates }) => updates
+  .filter(({ _ }) => _ === 'updateNewMessage')
+  .filter(({ message }) => !message.out)
+  .filter(({ message }) => message.peer_id._ === 'peerUser')
+  .length > 0 && checkLatestDialogs()
+)
 
 async function checkLatestDialogs() {
   const latestDialogs = await global.api.call('messages.getDialogs', {
