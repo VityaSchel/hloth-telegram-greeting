@@ -11,36 +11,37 @@ const entitiesMapping = {
   'u': 'messageEntityUnderline'
 }
 
-export default user => {
-  function convertHTMLToEntities(element) {
-    let entities = []
-    for(let child of element.childNodes) {
-      if(child.constructor.name === 'HTMLElement') {
-        const difference = start => {
-          const htmlBeforeStart = greetings.outerHTML.substring(0, start+1)
-          return htmlBeforeStart.length - stripHtml(htmlBeforeStart).result.length
-        }
-
-        entities.push({
-          _: entitiesMapping[child.rawTagName],
-          offset: child.range[0] - difference(child.range[0]),
-          length: child.innerText.length,
-          ...(child.rawTagName === 'a' && { url: child.getAttribute('href') })
-        })
-        if(child.childNodes) entities.push(...convertHTMLToEntities(child))
+function convertHTMLToEntities(root, element = root) {
+  let entities = []
+  for(let child of element.childNodes) {
+    if(child.constructor.name === 'HTMLElement') {
+      const difference = start => {
+        const htmlBeforeStart = root.outerHTML.substring(0, start+1)
+        return htmlBeforeStart.length - stripHtml(htmlBeforeStart).result.length
       }
-    }
-    return entities
-  }
-  function time() {
-    const date = DateTime.now().setZone('Europe/Moscow')
-    const time = date.toSeconds() - date.startOf('day').toSeconds()
-    if(time < 60*60*5) return 0
-    else if(time < 60*60*12) return 1
-    else if(time < 60*60*19) return 2
-    else return 3
-  }
 
+      entities.push({
+        _: entitiesMapping[child.rawTagName],
+        offset: child.range[0] - difference(child.range[0]),
+        length: child.innerText.length,
+        ...(child.rawTagName === 'a' && { url: child.getAttribute('href') })
+      })
+      if(child.childNodes) entities.push(...convertHTMLToEntities(root, child))
+    }
+  }
+  return entities
+}
+
+function time() {
+  const date = DateTime.now().setZone('Europe/Moscow')
+  const time = date.toSeconds() - date.startOf('day').toSeconds()
+  if(time < 60*60*5) return 0
+  else if(time < 60*60*12) return 1
+  else if(time < 60*60*19) return 2
+  else return 3
+}
+
+export default user => {
   /* eslint-disable no-irregular-whitespace */
   const greetings = parse(dedent`
     <b>${['Здравствуйте', 'Доброе утро', 'Добрый день', 'Добрый вечер'][time()]}, ${user.first_name}!</b>
@@ -60,18 +61,18 @@ export default user => {
 
     <b><u>Небольшой FAQ с частозадаваемыми вопросами:</u></b>
 
-    &P  <b>Вы работаете по предоплате?</b>
+    &!P  <b>Вы работаете по предоплате?</b>
     — Да, начиная с 2022 года я работаю только по предоплате. 
 
-    &M  <b>Сколько это будет стоить?</b>
+    &!M  <b>Сколько это будет стоить?</b>
     — Я работаю 3-5 часов в день с понедельника по пятницу, моя часовая ставка это <b>8.5 евро</b>, но обычно я устанавливаю \
     фиксированную цену на проект без учета правок.
     • Боты: от 50 €
     • Вёрстка: от 100 €
     • Лендинг: от 200 €
     • Сайты и приложения: от 300 €
-    
-    &C  <b>Способы оплаты</b>
+
+    &!C  <b>Способы оплаты</b>
     Я принимаю оплату на счет своего банка Тинькофф. <b>В связи с нестабильным курсом рубля, сейчас я принимаю оплату \
     только в евро и чешской кроне.</b> Если у Вас возникли трудности с переводом по SWIFT, то я могу предложить альтернативный \
     вариант перевода через СБП по курсу покупки евро в Тинькофф банке (актуальный курс: напишите @eurocurbot [число]).
@@ -85,13 +86,16 @@ export default user => {
 
   return {
     greetingsText: greetings.innerText
-      .replaceAll('&P', '💼')
-      .replaceAll('&M', '💵')
-      .replaceAll('&C', '💳'),
+      .replaceAll('&!P', '💼')
+      .replaceAll('&!M', '💵')
+      .replaceAll('&!C', '💳'),
     textEntities: convertHTMLToEntities(greetings)
   }
 }
 
-// &P = 💼
-// &M = 💵
-// &C = 💳
+// &!P = 💼
+// &!M = 💵
+// &!C = 💳
+
+const test = 'Hello💼<b>World</b> test'
+console.log(test, parse(test), convertHTMLToEntities(parse(test)))
