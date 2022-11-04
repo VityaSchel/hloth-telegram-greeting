@@ -19,7 +19,7 @@ const api = new MTProto({
 global.api = api
 
 const user = await authorize()
-console.log(`Пользователь ${user.user.first_name} авторизирован, бот начинает работу`)
+console.log(`Пользователь ${user.users[0].first_name} авторизирован, бот начинает работу`)
 
 api.updates.on('updateShortMessage', async updateInfo => updateInfo.out === false && checkLatestDialogs())
 api.updates.on('updates', ({ updates }) => updates
