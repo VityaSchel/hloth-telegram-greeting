@@ -8,8 +8,7 @@
     "prebuild": "del out/",
     "build": "ttsc",
     "postbuild": "cpy '**/*' '!**/*.ts' '../out' --cwd=src --no-overwrite --parents",
-    "start": "node out/index.js",
-    "test": "jest"
+    "start": "node out/index.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +20,18 @@
   "homepage": "https://github.com/VityaSchel/hloth-telegram-greeting#readme",
   "author": "Viktor Shchelochkov <hi@hloth.dev> (https://hloth.dev/)",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@babel/eslint-parser": "^7.16.5",
+    "@babel/plugin-syntax-top-level-await": "^7.14.5",
+    "@mtproto/core": "^6.1.0",
+    "dedent": "^0.7.0",
+    "dotenv": "^10.0.0",
+    "luxon": "^2.2.0",
+    "nanoid": "^3.1.30",
+    "node-html-parser": "^5.1.0",
+    "readline-sync": "^1.4.10",
+    "string-strip-html": "^9.1.1"
+  },
   "devDependencies": {
     "cpy-cli": "^3.1.1",
     "del-cli": "^4.0.1",

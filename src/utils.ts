@@ -8,7 +8,7 @@ export async function isFirstMessage(user, messageID) {
     limit: 1,
     max_id: messageID
   })
-  const isFirstMessage = history.count === 1
+  const isFirstMessage = history['count'] === 1
   return isFirstMessage
 }
 

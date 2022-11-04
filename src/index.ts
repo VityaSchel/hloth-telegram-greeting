@@ -1,5 +1,5 @@
 import './.env'
-import MTProto from '@mtproto/core'
+import MTProto, { Peer } from '@mtproto/core'
 import type { Message } from '@mtproto/core'
 import authorize from './auth'
 import generateGreetings from './greetings'
@@ -16,7 +16,7 @@ const api = new MTProto({
   storageOptions: { path: __dirname + '../tempdata.json' }
 })
 
-global.api = api 
+global.api = api
 
 const user = await authorize()
 console.log(`Пользователь ${user.user.first_name} авторизирован, бот начинает работу`)
@@ -35,15 +35,15 @@ async function checkLatestDialogs() {
     limit: 5,
     offset_peer: { _: 'inputPeerEmpty' }
   })
-  const unansweredDialogs = latestDialogs.dialogs.filter(({ unread_count, peer: { _ } }) => unread_count > 0 && _ === 'peerUser')
+  const unansweredDialogs = latestDialogs['dialogs'].filter(({ unread_count, peer: { _ } }) => unread_count > 0 && _ === 'peerUser')
   unansweredDialogs.forEach(async dialog => {
-    const user = latestDialogs.users.find(({ id }) => id === dialog.peer.user_id)
+    const user = latestDialogs['users'].find(({ id }) => id === dialog.peer.user_id)
     const firstMessage = await isFirstMessage(user, dialog.top_message)
     if(firstMessage) greet(user, dialog.top_message)
   })
 }
 
-function greet(user, replyToID) {
+function greet(user: Peer, replyToID: number) {
   console.log(`Приветствую ${user.first_name} ${user.last_name ?? '[no last_name]'} (@${user.username ?? '[no username]'}, ${user.id})`)
 
   const { greetingsText, textEntities } = generateGreetings(user)

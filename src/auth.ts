@@ -1,3 +1,4 @@
+import type { passwordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow } from '@mtproto/core'
 import readlineSync from 'readline-sync'
 import { getUser, sendCode, signIn, getPassword, checkPassword } from './utils.js'
 
@@ -9,17 +10,17 @@ export default async function authorize() {
   if (user) return user
   else {
     const phone = process.env.PHONE
-    const { phone_code_hash } = await sendCode(phone)
+    const codeSentResult = await sendCode(phone)
     const code = readlineSync.question('Код для авторизации: ')
 
     try {
       const signInResult = await signIn({
         code,
         phone,
-        phone_code_hash,
+        phone_code_hash: codeSentResult['phone_code_hash'],
       })
 
-      if (signInResult._ === 'auth.authorizationSignUpRequired') throw 'Аккаунт не найден'
+      if (signInResult['_'] === 'auth.authorizationSignUpRequired') throw 'Аккаунт не найден'
     } catch (error) {
       switch (error.error_message) {
         case 'SESSION_PASSWORD_NEEDED':
@@ -44,7 +45,7 @@ export default async function authorize() {
 
 async function twoFA() {
   const { srp_id, current_algo, srp_B } = await getPassword()
-  const { g, p, salt1, salt2 } = current_algo
+  const { g, p, salt1, salt2 } = current_algo as passwordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow
 
   const { A, M1 } = await global.api.crypto.getSRPParams({
     g,
@@ -52,7 +53,7 @@ async function twoFA() {
     salt1,
     salt2,
     gB: srp_B,
-    password: process.env.TWO_FA_PASSWORD,
+    password: process.env.TWO_FA_PASSWORD as string
   })
 
   await checkPassword({ srp_id, A, M1 })

@@ -12,7 +12,7 @@ const entitiesMapping = {
 }
 
 function convertHTMLToEntities(root, element = root) {
-  let entities = []
+  let entities: { _: string, offset: number, length: number, url?: string }[] = []
   for(let child of element.childNodes) {
     if(child.constructor.name === 'HTMLElement') {
       const difference = start => {
