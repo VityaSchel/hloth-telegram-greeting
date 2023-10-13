@@ -5,7 +5,7 @@
   "main": "out/index.js",
   "type": "module",
   "scripts": {
-    "prebuild": "del out/",
+    "prebuild": "rm -rf ./out/",
     "build": "ttsc",
     "postbuild": "cpy '**/*' '!**/*.ts' '../out' --cwd=src --no-overwrite --parents",
     "start": "node out/index.js"
